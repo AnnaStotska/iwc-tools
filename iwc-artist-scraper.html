@@ -356,15 +356,9 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        const userInfoEl = doc.querySelector('.user-info');
-        if (userInfoEl) {
-          const nameEl = userInfoEl.querySelector('h1, h2, h3, .username, [class*="name"], [class*="title"]');
-          if (nameEl) {
-            username = nameEl.textContent.trim();
-          } else {
-            const text = userInfoEl.textContent.trim();
-            username = text.split('\n').map(t => t.trim()).filter(t => t.length > 0)[0] || '-';
-          }
+        const usernameEl = doc.querySelector('.controls-box > p');
+        if (usernameEl) {
+          username = usernameEl.textContent.trim();
         }
 
         const avatarEl = doc.querySelector('.avatar-box img');
