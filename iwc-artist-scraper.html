@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IWC Artist Scraper</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .instructions {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .instructions h2 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 0.75rem;
+    }
+
+    .instructions ol {
+      padding-left: 1.25rem;
+      font-size: 14px;
+      line-height: 1.9;
+      color: #333;
+    }
+
+    .instructions ol li strong {
+      color: #1a1a1a;
+    }
+
+    .warning {
+      background: #fffbeb;
+      border: 1px solid #f5d87a;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 13px;
+      color: #7a5c00;
+      margin-top: 0.75rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12.5px;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+      color: #1a1a1a;
+      resize: vertical;
+      line-height: 1.6;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus {
+      border-color: #aaa;
+      background: #fff;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 7px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    button:hover { background: #f0f0f0; }
+    button:active { background: #e8e8e8; }
+
+    button.primary {
+      background: #1a1a1a;
+      color: #fff;
+      border-color: #1a1a1a;
+    }
+
+    button.primary:hover { background: #333; }
+    button.primary:disabled { background: #999; border-color: #999; cursor: not-allowed; }
+
+    button.success {
+      background: #16a34a;
+      color: #fff;
+      border-color: #16a34a;
+    }
+
+    button.success:hover { background: #15803d; }
+
+    #progress {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #666;
+      display: none;
+    }
+
+    .progress-bar-wrap {
+      height: 4px;
+      background: #eee;
+      border-radius: 4px;
+      margin-top: 6px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #1a1a1a;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .results-section {
+      display: none;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .results-header p {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead tr {
+      background: #fafafa;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 500;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .col-num { width: 40px; color: #aaa; }
+    .col-username { width: 200px; font-weight: 500; }
+    .col-avatar { max-width: 340px; }
+    .col-status { width: 80px; }
+
+    .avatar-url {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11.5px;
+      color: #2563eb;
+      word-break: break-all;
+      text-decoration: none;
+    }
+
+    .avatar-url:hover { text-decoration: underline; }
+
+    .status-ok { color: #16a34a; font-weight: 500; }
+    .status-nodata { color: #d97706; font-weight: 500; }
+    .status-error { color: #dc2626; font-weight: 500; }
+
+    .hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .col-avatar { max-width: 160px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>IWC Artist Scraper</h1>
+    <p>Extract Artist username and avatar URL from IWC store pages</p>
+  </div>
+
+  <div class="instructions">
+    <h2>How to use</h2>
+    <ol>
+      <li><strong>Open iwantclips.com</strong> in this same browser and click "Enter the site" on the age gate popup. You only need to do this once.</li>
+      <li><strong>Come back to this file</strong> and paste your list of store URLs below - one URL per line.</li>
+      <li><strong>Click "Extract data"</strong> and wait for all URLs to be processed.</li>
+      <li><strong>Click "Copy for Sheets"</strong> - then open your Google Sheet and press Ctrl+V (or Cmd+V on Mac).</li>
+    </ol>
+    <div class="warning">
+      This tool must be opened as a local file in your browser (not uploaded anywhere). The browser needs to be the same one where you accepted the IWC age gate.
+    </div>
+  </div>
+
+  <div class="card">
+    <label for="urlInput">Store URLs - one per line</label>
+    <textarea id="urlInput" placeholder="https://iwantclips.com/store/26276/Lady-Anja-German-Mistress&#10;https://iwantclips.com/store/12345/Another-Artist&#10;https://iwantclips.com/store/99999/Artist-Name"></textarea>
+    <div class="actions">
+      <button class="primary" id="runBtn" onclick="runScraper()">Extract data</button>
+      <button id="copyBtn" class="success" onclick="copyTSV()" style="display:none;">Copy for Sheets</button>
+      <button onclick="clearAll()">Clear</button>
+    </div>
+    <div id="progress"></div>
+    <div class="progress-bar-wrap" id="progressBarWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="results-section" id="resultsSection">
+    <div class="results-header">
+      <p id="resultsSummary"></p>
+      <button id="copyBtn2" class="success" onclick="copyTSV()">Copy for Sheets</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-num">#</th>
+            <th class="col-username">Username</th>
+            <th class="col-avatar">Avatar URL</th>
+            <th class="col-status">Status</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+    <p class="hint">Status: OK = data found - No data = page loaded but selectors not matched - Error = page could not be fetched (age gate not accepted or network issue)</p>
+  </div>
+
+</div>
+
+<script>
+  let scrapedRows = [];
+
+  async function runScraper() {
+    const raw = document.getElementById('urlInput').value.trim();
+    if (!raw) return;
+
+    const urls = raw.split('\n').map(u => u.trim()).filter(u => u.length > 0);
+    scrapedRows = [];
+
+    const runBtn = document.getElementById('runBtn');
+    runBtn.disabled = true;
+    runBtn.textContent = 'Processing...';
+
+    document.getElementById('copyBtn').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'none';
+
+    const progress = document.getElementById('progress');
+    const progressBarWrap = document.getElementById('progressBarWrap');
+    const progressBar = document.getElementById('progressBar');
+    progress.style.display = 'block';
+    progressBarWrap.style.display = 'block';
+
+    const tbody = document.getElementById('resultsBody');
+    tbody.innerHTML = '';
+
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      progress.textContent = `Processing ${i + 1} of ${urls.length}: ${url}`;
+      progressBar.style.width = Math.round(((i) / urls.length) * 100) + '%';
+
+      let username = '-';
+      let avatarUrl = '-';
+      let status = 'OK';
+
+      try {
+        const resp = await fetch(url, { credentials: 'include' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+        const html = await resp.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        const userInfoEl = doc.querySelector('.user-info');
+        if (userInfoEl) {
+          const nameEl = userInfoEl.querySelector('h1, h2, h3, .username, [class*="name"], [class*="title"]');
+          if (nameEl) {
+            username = nameEl.textContent.trim();
+          } else {
+            const text = userInfoEl.textContent.trim();
+            username = text.split('\n').map(t => t.trim()).filter(t => t.length > 0)[0] || '-';
+          }
+        }
+
+        const avatarEl = doc.querySelector('.avatar-box img');
+        if (avatarEl) {
+          let src = avatarEl.getAttribute('src') || '';
+          if (src && src.startsWith('/')) {
+            src = 'https://iwantclips.com' + src;
+          }
+          avatarUrl = src || '-';
+        }
+
+        if (username === '-' && avatarUrl === '-') {
+          status = 'No data';
+        }
+
+      } catch (e) {
+        status = 'Error';
+        username = '-';
+        avatarUrl = '-';
+      }
+
+      scrapedRows.push({ url, username, avatarUrl, status });
+
+      const tr = document.createElement('tr');
+      const statusClass = status === 'OK' ? 'status-ok' : status === 'No data' ? 'status-nodata' : 'status-error';
+      const avatarCell = avatarUrl !== '-'
+        ? `<a class="avatar-url" href="${avatarUrl}" target="_blank">${avatarUrl}</a>`
+        : '<span style="color:#aaa;">-</span>';
+
+      tr.innerHTML = `
+        <td class="col-num">${i + 1}</td>
+        <td class="col-username">${username}</td>
+        <td class="col-avatar">${avatarCell}</td>
+        <td class="col-status"><span class="${statusClass}">${status}</span></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    progressBar.style.width = '100%';
+    const okCount = scrapedRows.filter(r => r.status === 'OK').length;
+    const errorCount = scrapedRows.filter(r => r.status === 'Error').length;
+    progress.textContent = `Done. ${okCount} extracted, ${errorCount} errors.`;
+
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('resultsSummary').textContent = `${urls.length} URLs processed - ${okCount} successful, ${errorCount} failed`;
+    document.getElementById('copyBtn').style.display = 'inline-block';
+
+    runBtn.disabled = false;
+    runBtn.textContent = 'Extract data';
+  }
+
+  function copyTSV() {
+    if (!scrapedRows.length) return;
+    const header = 'URL\tUsername\tAvatar URL\tStatus';
+    const rows = scrapedRows.map(r => `${r.url}\t${r.username}\t${r.avatarUrl}\t${r.status}`);
+    const tsv = [header, ...rows].join('\n');
+
+    navigator.clipboard.writeText(tsv).then(() => {
+      const btns = [document.getElementById('copyBtn'), document.getElementById('copyBtn2')];
+      btns.forEach(b => { if (b) b.textContent = 'Copied!'; });
+      setTimeout(() => btns.forEach(b => { if (b) b.textContent = 'Copy for Sheets'; }), 2500);
+    }).catch(() => {
+      alert('Copy failed. Please select the table manually and copy it.');
+    });
+  }
+
+  function clearAll() {
+    document.getElementById('urlInput').value = '';
+    document.getElementById('resultsBody').innerHTML = '';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('copyBtn').style.display = 'none';
+    document.getElementById('progress').style.display = 'none';
+    document.getElementById('progressBarWrap').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+    scrapedRows = [];
+  }
+</script>
+</body>
+</html>
